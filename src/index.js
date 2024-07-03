@@ -1,15 +1,38 @@
-import app from './app.js';
+import express from 'express';
+import cors from 'cors';
+import http from 'http';
+import { Server } from 'socket.io'; // Import Server class for clarity
+
+const app = express();
+app.use(cors())
+const server = http.createServer(app);
+const io = new Server(server, {
+    cors: {
+        origin: '*',
+        allowedHeaders: '*',
+    }
+}); // Create a new Socket.IO instance
 
 const PORT = process.env.PORT || 8080;
 
-app.get('/', (_req, res) => {
-    return res.json({
-        status: "running",
+// Serve the index.html file for the web interface
+app.get('/', (req, res) => {
+    res.json({
+        status: true
     });
 });
 
-// socket io connection
+// Handle socket connections
+io.on('connection', (socket) => {
+    console.log('A user connected');
 
-app.listen(PORT, () => {
-    console.log(`Server is listening on port ${PORT}`);
+    // Handle socket disconnection
+    socket.on('disconnect', () => {
+        console.log('User disconnected');
+    });
+});
+
+// Start the server
+server.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
 });
