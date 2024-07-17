@@ -1,13 +1,25 @@
 import app from './app.js';
 import * as http from "node:http";
 import connectSocket from "./socket/connectSocket.js";
+import connectDatabase from "./database/connectDatabase.js";
 
 const PORT = process.env.PORT || 8080;
 
-const httpServer = http.createServer(app);
+function root() {
+    const httpServer = http.createServer(app);
 
-connectSocket(httpServer);
+    connectSocket(httpServer);
 
-httpServer.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
-})
+    httpServer.listen(PORT, () => {
+        console.log(`Server is running on port ${PORT}`);
+    })
+}
+
+connectDatabase()
+    .then(() => {
+        root();
+    })
+    .catch((err) => {
+        console.error(err);
+        process.exit(1);
+    })

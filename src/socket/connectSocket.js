@@ -1,26 +1,24 @@
 import { Server } from "socket.io";
+import socketHandlers from "./socketHandlers.js";
+import { createAdapter } from "@socket.io/redis-adapter";
+import { pub, sub } from "../redis/connectRedis.js";
+import {authSocketMiddleware} from "./middlewares/auth.socket.middleware.js";
+
+const socketServerOptions = {
+    cors: {
+        origin: "*",
+    },
+    adapter: createAdapter(pub, sub),
+}
 
 const connectSocket = ( server ) => {
-    const io = new Server(server, {
-        cors: {
-            origin: "*",
-            methods: ["*"],
-        }
-    })
+    const io = new Server(server, socketServerOptions)
 
-    io.on("connection", (socket) => {
-        console.log(`Socket connected: ${socket.id}`);
+    sub.subscribe("redis");
 
-        // custom emit events
-        socket.on("chat", (data) => {
-            console.log(data);
-            io.emit("chat", data);
-        });
+    io.use(authSocketMiddleware);
 
-        socket.on("disconnect", () => {
-            console.log(`Socket disconnected: ${socket.id}`);
-        });
-    });
+    io.on("connection", (socket) => socketHandlers(socket, io));
 }
 
 export default connectSocket;

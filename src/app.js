@@ -13,4 +13,7 @@ app.get("/", (_req, res) => {
     })
 });
 
+import userRouter from "./routes/user.route.js";
+app.use("/user", userRouter);
+
 export default app;
